@@ -1,0 +1,8 @@
+# Workflow-related directories
+data/*
+results/*
+work/*
+
+# Environment-related files
+*-env
+*.sif
