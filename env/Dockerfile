@@ -1,18 +1,32 @@
-FROM condaforge/mambaforge:4.10.1-0
-LABEL description = "Dockerfile for the #0000 NBIS support project"
-MAINTAINER "Erik Fasterius" erik.fasterius@nbis.se
+#
+# First stage: Build Pixi environment
+#
+FROM ghcr.io/prefix-dev/pixi:0.37.0 AS build
+LABEL org.opencontainers.image.authors="erik.fasterius@nbis.se"
+LABEL org.opencontainers.image.description="Dockerfile for the #0000 NBIS support project"
 
-# Use bash as shell
-SHELL ["/bin/bash", "-c"]
+# Copy the environment toml
+COPY pixi.toml pixi.lock /
 
-# Set working directory
-WORKDIR /project
+# Install the Pixi environment as 'default'
+RUN pixi install
 
-# Copy and install the Conda environment
-COPY environment.yml ./
-RUN conda config --set channel_priority strict \
-    && mamba env update --name base --file environment.yml \
-    && mamba clean --all --force-pkgs-dirs --yes
+# Create the shell-hook bash script that will activate the environment
+RUN pixi shell-hook > /shell-hook.sh
 
-# Start Bash shell by default
+# Extend the shell-hook script to run the command passed to at run-time
+RUN echo 'exec "$@"' >> /shell-hook.sh
+
+#
+# Last stage: final image
+#
+FROM ubuntu:20.04 AS work
+WORKDIR /work
+
+# Copy over environment and shell-hook script from build stage
+COPY --from=build /.pixi/envs/default /.pixi/envs/default
+COPY --from=build /shell-hook.sh /shell-hook.sh
+
+# Activate the Pixi environment when running the container
+ENTRYPOINT ["/bin/bash", "/shell-hook.sh"]
 CMD /bin/bash

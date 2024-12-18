@@ -7,5 +7,9 @@ work/*
 *-env
 *.sif
 
+# Pixi environments
+.pixi
+*.egg-info
+
 # Except any .gitignore-file
 !**.gitignore

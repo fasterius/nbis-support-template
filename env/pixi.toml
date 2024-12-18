@@ -1,0 +1,11 @@
+[project]
+authors = ["Erik Fasterius <erik.fasterius@outlook.com>"]
+channels = ["conda-forge", "bioconda"]
+name = "env"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+# package = "version"
