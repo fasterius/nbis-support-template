@@ -8,8 +8,10 @@ workflow {
         """
         NBIS support #0000
         ==================
-        Workflow parameters
+        Input/output options
             Results directory       : ${params.resultsdir}
+
+        Core Nextflow options
             Work directory          : ${params.workdir}
             Profile                 : ${workflow.profile}
             Resume                  : ${workflow.resume}
