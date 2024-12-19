@@ -9,7 +9,7 @@ workflow {
         NBIS support #0000
         ==================
         Input/output options
-            Results directory       : ${params.resultsdir}
+            Results directory       : ${params.outdir}
 
         Core Nextflow options
             Work directory          : ${params.workdir}
@@ -27,7 +27,7 @@ workflow {
 // First process
 process PROCESS_01 {
     tag "${input}"
-    publishDir "${params.resultsdir}/",
+    publishDir "${params.outdir}/",
         mode: params.publish_mode
 
     input:
