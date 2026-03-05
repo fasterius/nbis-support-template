@@ -30,3 +30,6 @@ using `git tag`. Raw data is not stored in this repository.
 ```bash
 nextflow run main.nf -profile docker
 ```
+
+You can also use any of the [nf-core configurations](https://nf-co.re/configs)
+by adding _e.g._ `profile docker,pdc_kth` (for running on Dardel @ PDC).
