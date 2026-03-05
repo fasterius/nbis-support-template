@@ -1,3 +1,0 @@
-# Ignore everything except Conda environment YAML
-*
-!environment.yml
