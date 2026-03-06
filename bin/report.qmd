@@ -6,11 +6,7 @@ format:
     nbis-html:
         code-fold: false
         echo: false
-        embed-resources: true
-        smooth-scroll: true
         toc-depth: 2
-        toc-location: left
-        toc: true
         warning: false
 engine: knitr
 ---
