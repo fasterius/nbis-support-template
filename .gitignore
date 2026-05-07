@@ -13,3 +13,6 @@ work/*
 
 # Except any .gitignore-file
 !**.gitignore
+
+# Test data
+!data/test.txt

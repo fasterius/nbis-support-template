@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 
+include { QUARTONOTEBOOK as REPORT } from "./modules/nf-core/quartonotebook"
+
 // Main workflow
 workflow {
 
@@ -14,41 +16,50 @@ workflow {
 
         Core Nextflow options
             Work directory          : ${params.workdir}
-            Publish mode            : ${params.publish_mode}
+            Publish mode            : ${params.publish_dir_mode}
             Profile                 : ${workflow.profile}
             Resume                  : ${workflow.resume}
-        """)
+        """
+    )
 
-    // Input channel
-    ch_input = channel.of(1, 2, 3)
+    // Input channel on the format of [meta, sample]
+    ch_input = channel.fromPath("data/test.txt", checkIfExists: true)
+        .map { it -> [[id: it.baseName], it] }
 
     // Run workflow
-    PROCESS_01(ch_input)
+    report_notebook = file("${projectDir}/bin/report.qmd", checkIfExists: true)
+    extensions = channel.fromPath("${projectDir}/assets/_extensions").collect()
+    ch_report_input_data = ch_input
+        .map { it -> it[1] }
+    ch_report_notebook = ch_input
+        .map { it -> it[0] }
+        .combine(channel.value(report_notebook))
+        .map { meta, notebook -> tuple(meta, notebook) }
+    ch_report_params = ch_input
+        .map { _meta, _sample ->
+            [
+                artifact_dir : "artifacts"
+            ]
+        }
+    REPORT (
+        ch_report_notebook,
+        ch_report_params,
+        ch_report_input_data,
+        extensions
+    )
 
     publish:
-    text = PROCESS_01.out.txt
+    html    = REPORT.out.html
+    figures = REPORT.out.artifacts
 
 }
 
 // Workflow outputs
 output {
-    text {
-        path { sample, _txt -> "texts/${sample}"}
+    html {
+        path { "reports/"}
     }
-}
-
-// First process
-process PROCESS_01 {
-    tag "${input}"
-
-    input:
-    val(input)
-
-    output:
-    tuple val(input), path("*.txt"), emit: txt
-
-    script:
-    """
-    echo ${input} > output.txt
-    """
+    figures {
+        path { "reports/figures"}
+    }
 }

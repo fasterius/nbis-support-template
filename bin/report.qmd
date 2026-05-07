@@ -1,6 +1,6 @@
 ---
-title: "title"
-author: "author"
+title: "NBIS support #0000 report"
+author: "Erik Fasterius"
 date: today
 format:
     nbis-html:
