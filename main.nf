@@ -28,7 +28,7 @@ workflow {
 
     // Run workflow
     report_notebook = file("${projectDir}/bin/report.qmd", checkIfExists: true)
-    extensions = channel.fromPath("${projectDir}/assets/_extensions").collect()
+    extensions = file("${projectDir}/assets/_extensions", checkIfExists: true)
     ch_report_input_data = ch_input
         .map { it -> it[1] }
     ch_report_notebook = ch_input
