@@ -10,10 +10,6 @@ project/
  ├── bin/                   Scripts and executables
  ├── data/                  Data
  ├── doc/                   Documents and other information
- ├── env/*/                 Environment-related files
- │   ├── Dockerfile           Docker image specification
- │   ├── pixi.toml            Pixi environment file
- │   └── pixi.lock            Pixi lockfile
  ├── results/               Workflow results
  ├── main.nf                Workflow definition
  ├── nextflow.config        Workflow configuration
