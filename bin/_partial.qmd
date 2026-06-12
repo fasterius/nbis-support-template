@@ -1,0 +1,17 @@
+---
+engine: knitr
+params:
+    meta: "partial"
+    cpus: 1
+    artifact_dir: "artifacts"
+    cutoff: 5
+---
+
+# This is the first header
+
+And here is some text from the partial. The parameter `cutoff` has a value of
+`r params$cutoff`.
+
+```{r}
+plot(1, 1)
+```

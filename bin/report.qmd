@@ -4,9 +4,19 @@ author: "Erik Fasterius"
 date: today
 format:
     nbis-html:
-        code-fold: false
+        code-fold: true
         echo: false
         toc-depth: 2
         warning: false
 engine: knitr
 ---
+
+# This is the main header
+
+This is text from the main report file.
+
+{{< include _test.qmd >}}
+
+# This is also from the main report
+
+Some final text.
