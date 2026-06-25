@@ -1,10 +1,10 @@
 // NB: You'll likely want to override this with a container containing all
-// required dependencies for your analyses. Or use wave to build the container
-// for you from the environment.yml You'll at least need Quarto itself,
+// required dependencies for your analyses, or use wave to build the container
+// for you from the environment.yml. You'll at least need Quarto itself,
 // Papermill and whatever language you are running your analyses on; you can see
 // an example in this module's environment file.
 process QUARTO_PARTIAL {
-    tag "${prefix}"
+    tag "${meta.id}"
     label 'process_low'
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
@@ -19,7 +19,7 @@ process QUARTO_PARTIAL {
     output:
     tuple val(meta), path(notebook)                                                            , emit: notebook
     tuple val(meta), path("params.yml")                                                        , emit: params_yaml
-    tuple val(meta), path("_${prefix}.qmd")                                                    , emit: partial
+    tuple val(meta), path("*.md")                                                              , emit: partial
     tuple val(meta), path("*_files")                                                           , emit: partial_files, optional: true
     tuple val(meta), path("${notebook_parameters.artifact_dir}/*")                             , emit: artifacts    , optional: true
     tuple val("${task.process}"), val('quarto')   , eval('quarto -v')                          , emit: versions_quarto   , topic: versions
@@ -31,7 +31,7 @@ process QUARTO_PARTIAL {
     script:
     def args = task.ext.args ?: ''
     // Partial is meant to be run once, not per sample, hence the naming scheme
-    prefix = task.ext.prefix ?: "${notebook.simpleName}"
+    def prefix = task.ext.prefix ?: "${notebook.baseName}"
     // Implicit parameters can be overwritten by supplying a value with parameters
     notebook_parameters = [
         meta: meta,
@@ -78,11 +78,11 @@ process QUARTO_PARTIAL {
         ${args} \\
         --to markdown \\
         --execute-params params.yml \\
-        --output _${prefix}.qmd
+        --output ${prefix}.md
     """
 
     stub:
-    prefix = task.ext.prefix ?: "${notebook.simpleName}"
+    def prefix = task.ext.prefix ?: "${notebook.baseName}"
     """
     # Note: The fix is also needed in the stub for `quarto -v` to work.
     ENV_QUARTO=/opt/conda/etc/conda/activate.d/quarto.sh
@@ -92,7 +92,7 @@ process QUARTO_PARTIAL {
     fi
     set -u
 
-    touch _${prefix}.qmd
+    touch ${prefix}.md
     touch params.yml
     """
 }

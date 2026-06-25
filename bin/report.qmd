@@ -15,7 +15,7 @@ engine: knitr
 
 This is text from the main report file.
 
-{{< include _partial.qmd >}}
+{{< include partial.md >}}
 
 # This is also from the main report
 
