@@ -28,10 +28,10 @@ workflow {
         .map { it -> [[id: it.baseName], it] }
 
     // Render Quarto partials
-    partial_notebook = file("${projectDir}/bin/_partial.qmd", checkIfExists: true)
-    ch_partial_input = ch_input.map { it -> it[1] }
+    partial_notebook = file("${projectDir}/bin/partial.qmd", checkIfExists: true)
+    ch_partial_input = ch_input.map { _meta, txt -> txt }
     ch_partial_notebook = ch_input
-        .map { it -> it[0] }
+        .map { meta, _qmd -> meta }
         .combine(channel.value(partial_notebook))
         .map { meta, notebook -> tuple(meta, notebook) }
     ch_partial_params = ch_input
@@ -50,7 +50,7 @@ workflow {
         .map { _meta, qmd -> qmd }
         .collect()
     ch_report_notebook = PARTIAL.out.partial
-        .map { it -> it[0] }
+        .map { meta, _qmd -> meta }
         .combine(channel.value(report_notebook))
         .map { meta, notebook -> tuple(meta, notebook) }
     ch_report_params = PARTIAL.out.partial
