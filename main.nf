@@ -46,15 +46,14 @@ workflow {
     report_notebook = file("${projectDir}/bin/report.qmd", checkIfExists: true)
     extensions = file("${projectDir}/assets/_extensions", checkIfExists: true)
     ch_report_input = PARTIAL.out.partial
-        .mix(PARTIAL.out.partial_files)
-        .map { _meta, qmd -> qmd }
+        .map { _meta, partial -> partial }
         .collect()
     ch_report_notebook = PARTIAL.out.partial
-        .map { meta, _qmd -> meta }
+        .map { meta, _partial -> meta }
         .combine(channel.value(report_notebook))
         .map { meta, notebook -> tuple(meta, notebook) }
     ch_report_params = PARTIAL.out.partial
-        .map { _meta, _sample -> [ artifact_dir : "artifacts" ] }
+        .map { _meta, _partial -> [ artifact_dir : "artifacts" ] }
     REPORT (
         ch_report_notebook,
         ch_report_params,
