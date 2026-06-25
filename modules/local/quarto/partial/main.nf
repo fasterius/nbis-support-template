@@ -4,7 +4,7 @@
 // Papermill and whatever language you are running your analyses on; you can see
 // an example in this module's environment file.
 process QUARTO_PARTIAL {
-    tag "${meta.id}"
+    tag "${prefix}"
     label 'process_low'
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
@@ -19,9 +19,8 @@ process QUARTO_PARTIAL {
     output:
     tuple val(meta), path(notebook)                                                            , emit: notebook
     tuple val(meta), path("params.yml")                                                        , emit: params_yaml
-    tuple val(meta), path("*.md")                                                              , emit: partial
-    tuple val(meta), path("*_files")                                                           , emit: partial_files, optional: true
-    tuple val(meta), path("${notebook_parameters.artifact_dir}/*")                             , emit: artifacts    , optional: true
+    tuple val(meta), path("${prefix}{.md,_files}")                                             , emit: partial
+    tuple val(meta), path("${notebook_parameters.artifact_dir}/*")                             , emit: artifacts, optional: true
     tuple val("${task.process}"), val('quarto')   , eval('quarto -v')                          , emit: versions_quarto   , topic: versions
     tuple val("${task.process}"), val('papermill'), eval('papermill --version | cut -f1 -d" "'), emit: versions_papermill, topic: versions
 
@@ -31,7 +30,7 @@ process QUARTO_PARTIAL {
     script:
     def args = task.ext.args ?: ''
     // Partial is meant to be run once, not per sample, hence the naming scheme
-    def prefix = task.ext.prefix ?: "${notebook.baseName}"
+    prefix = task.ext.prefix ?: "${notebook.baseName}"
     // Implicit parameters can be overwritten by supplying a value with parameters
     notebook_parameters = [
         meta: meta,
@@ -82,7 +81,7 @@ process QUARTO_PARTIAL {
     """
 
     stub:
-    def prefix = task.ext.prefix ?: "${notebook.baseName}"
+    prefix = task.ext.prefix ?: "${notebook.baseName}"
     """
     # Note: The fix is also needed in the stub for `quarto -v` to work.
     ENV_QUARTO=/opt/conda/etc/conda/activate.d/quarto.sh
