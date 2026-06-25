@@ -4,7 +4,7 @@
 // Papermill and whatever language you are running your analyses on; you can see
 // an example in this module's environment file.
 process QUARTO_PARTIAL {
-    tag "${meta.id}"
+    tag "${prefix}"
     label 'process_low'
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
@@ -13,7 +13,7 @@ process QUARTO_PARTIAL {
 
     input:
     tuple val(meta), path(notebook)
-    val(parameters)
+    val parameters
     path input_files
 
     output:
@@ -30,7 +30,8 @@ process QUARTO_PARTIAL {
 
     script:
     def args = task.ext.args ?: ''
-    prefix = task.ext.prefix ?: "${meta.id}"
+    // Partial is meant to be run once, not per sample, hence the naming scheme
+    prefix = task.ext.prefix ?: "${notebook.simpleName}"
     // Implicit parameters can be overwritten by supplying a value with parameters
     notebook_parameters = [
         meta: meta,
@@ -81,15 +82,9 @@ process QUARTO_PARTIAL {
     """
 
     stub:
-    prefix = task.ext.prefix ?: "${meta.id}"
-    notebook_parameters = [
-        meta: meta,
-        cpus: task.cpus,
-        artifact_dir: "artifacts",
-    ] + (parameters ?: [:])
+    prefix = task.ext.prefix ?: "${notebook.simpleName}"
     """
-    # Fix Quarto for Apptainer (see https://community.seqera.io/t/confusion-over-why-a-tool-works-in-docker-but-fails-in-singularity-when-the-installation-doesnt-differ-i-e-using-wave-micromamba/1244)
-    # Note: This is needed in the stub for `quarto -v` to work.
+    # Note: The fix is also needed in the stub for `quarto -v` to work.
     ENV_QUARTO=/opt/conda/etc/conda/activate.d/quarto.sh
     set +u
     if [ -z "\${QUARTO_DENO}" ] && [ -f "\${ENV_QUARTO}" ]; then
