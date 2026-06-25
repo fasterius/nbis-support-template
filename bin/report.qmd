@@ -5,18 +5,15 @@ date: today
 format:
     nbis-html:
         code-fold: true
-        echo: false
-        toc-depth: 2
-        warning: false
-engine: knitr
+        toc-depth: 3
+params:
+    meta: null
+    cpus: 1
+    artifact_dir: "artifacts"
 ---
 
-# This is the main header
+# Introduction
 
-This is text from the main report file.
+Introductory text.
 
 {{< include partial.md >}}
-
-# This is also from the main report
-
-Some final text.

@@ -1,17 +1,19 @@
 ---
-engine: knitr
+format:
+    markdown:
+        echo: false
+        warning: false
 params:
-    meta: "partial"
+    meta: null
     cpus: 1
     artifact_dir: "artifacts"
-    cutoff: 5
 ---
 
-# This is the first header
+# Partial
 
-And here is some text from the partial. The parameter `cutoff` has a value of
-`r params$cutoff`.
+Text from the partial.
 
 ```{r}
+warning("This is a warning")
 plot(1, 1)
 ```
