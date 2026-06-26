@@ -29,13 +29,9 @@ workflow {
 
     // Render Quarto partials
     partial_notebook = file("${projectDir}/bin/partial.qmd", checkIfExists: true)
-    ch_partial_input = ch_input.map { _meta, txt -> txt }
-    ch_partial_notebook = ch_input
-        .map { meta, _qmd -> meta }
-        .combine(channel.value(partial_notebook))
-        .map { meta, notebook -> tuple(meta, notebook) }
-    ch_partial_params = ch_input
-        .map { _meta, _sample -> [ artifact_dir : "artifacts" ] }
+    ch_partial_notebook = [[id: partial_notebook.simpleName], partial_notebook]
+    ch_partial_params = [ artifact_dir: "artifacts" ]
+    ch_partial_input = ch_input.map { _meta, txt -> txt }.collect()
     PARTIAL (
         ch_partial_notebook,
         ch_partial_params,
@@ -45,15 +41,11 @@ workflow {
     // Final Quarto render, including all partials
     report_notebook = file("${projectDir}/bin/report.qmd", checkIfExists: true)
     extensions = file("${projectDir}/assets/_extensions", checkIfExists: true)
+    ch_report_notebook = [[id: report_notebook.simpleName], report_notebook]
+    ch_report_params = [ artifact_dir: "artifacts" ]
     ch_report_input = PARTIAL.out.partial
         .map { _meta, partial -> partial }
         .collect()
-    ch_report_notebook = PARTIAL.out.partial
-        .map { meta, _partial -> meta }
-        .combine(channel.value(report_notebook))
-        .map { meta, notebook -> tuple(meta, notebook) }
-    ch_report_params = PARTIAL.out.partial
-        .map { _meta, _partial -> [ artifact_dir : "artifacts" ] }
     REPORT (
         ch_report_notebook,
         ch_report_params,
@@ -64,7 +56,6 @@ workflow {
     publish:
     html    = REPORT.out.html
     figures = REPORT.out.artifacts
-
 }
 
 // Workflow outputs
