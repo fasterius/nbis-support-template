@@ -16,4 +16,6 @@ Text from the partial.
 ```{r}
 warning("This is a warning")
 plot(1, 1)
+data(iris)
+write.table(head(iris), file.path(params$artifact_dir, "iris-head.txt"))
 ```

@@ -17,3 +17,8 @@ params:
 Introductory text.
 
 {{< include partial.md >}}
+
+```{r}
+data(iris)
+write.table(tail(iris), file.path(params$artifact_dir, "iris-tail.txt"))
+```

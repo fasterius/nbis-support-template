@@ -53,9 +53,12 @@ workflow {
         extensions
     )
 
+    // Collect all artefacts
+    ch_artifacts = PARTIAL.out.artifacts.mix(REPORT.out.artifacts)
+
     publish:
-    html    = REPORT.out.html
-    figures = REPORT.out.artifacts
+    html      = REPORT.out.html
+    artifacts = ch_artifacts
 }
 
 // Workflow outputs
@@ -63,7 +66,6 @@ output {
     html {
         path { "reports/" }
     }
-    figures {
-        path { "reports/figures"}
+    artifacts {
     }
 }
