@@ -1,0 +1,9 @@
+[workspace]
+authors = ["Erik Fasterius <erik.fasterius@nbis.se>"]
+channels = ["conda-forge", "bioconda"]
+description = "description"
+name = "name"
+platforms = ["osx-arm64", "linux-64"]
+
+[dependencies]
+nextflow = "*"
