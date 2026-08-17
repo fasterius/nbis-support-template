@@ -3,6 +3,7 @@ format:
     markdown:
         echo: false
         warning: false
+        standalone: false
 params:
     meta: null
     cpus: 1
