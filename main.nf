@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
-include { QUARTO_PARTIAL as PARTIAL } from "./modules/local/quarto/partial"
-include { QUARTONOTEBOOK as REPORT  } from "./modules/nf-core/quartonotebook"
+include { QUARTO_PRERENDER as PRERENDER } from "./modules/nf-core/quarto/prerender"
+include { QUARTO_NOTEBOOK as REPORT     } from "./modules/nf-core/quarto/notebook"
 
 // Main workflow
 workflow {
@@ -27,24 +27,24 @@ workflow {
     ch_input = channel.fromPath("data/test.txt", checkIfExists: true)
         .map { it -> [[id: it.baseName], it] }
 
-    // Render Quarto partials
-    partial_notebook = file("${projectDir}/bin/partial.qmd", checkIfExists: true)
-    ch_partial_notebook = [[id: partial_notebook.simpleName], partial_notebook]
-    ch_partial_params = [ artifact_dir: "artifacts" ]
-    ch_partial_input = ch_input.map { _meta, txt -> txt }.collect()
-    PARTIAL (
-        ch_partial_notebook,
-        ch_partial_params,
-        ch_partial_input
+    // Pre-render notebooks
+    prerender_notebook = file("${projectDir}/bin/prerender.qmd", checkIfExists: true)
+    ch_prerender_notebook = [[id: prerender_notebook.simpleName], prerender_notebook]
+    ch_prerender_params = []
+    ch_prerender_input = ch_input.map { _meta, txt -> txt }.collect()
+    PRERENDER (
+        ch_prerender_notebook,
+        ch_prerender_params,
+        ch_prerender_input
     )
 
-    // Final Quarto render, including all partials
+    // Final Quarto render, including all pre-rendered notebooks
     report_notebook = file("${projectDir}/bin/report.qmd", checkIfExists: true)
     extensions = file("${projectDir}/assets/_extensions", checkIfExists: true)
     ch_report_notebook = [[id: report_notebook.simpleName], report_notebook]
-    ch_report_params = [ artifact_dir: "artifacts" ]
-    ch_report_input = PARTIAL.out.partial
-        .map { _meta, partial -> partial }
+    ch_report_params = []
+    ch_report_input = PRERENDER.out.rendered
+        .map { _meta, prerender -> prerender }
         .collect()
     REPORT (
         ch_report_notebook,
@@ -54,7 +54,7 @@ workflow {
     )
 
     // Collect all artefacts
-    ch_artifacts = PARTIAL.out.artifacts.mix(REPORT.out.artifacts)
+    ch_artifacts = PRERENDER.out.artifacts.mix(REPORT.out.artifacts)
 
     publish:
     html      = REPORT.out.html

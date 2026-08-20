@@ -1,9 +1,14 @@
-// NB: You'll likely want to override this with a container containing all
+// NB 1: You'll likely want to override this with a container containing all
 // required dependencies for your analyses, or use wave to build the container
 // for you from the environment.yml. You'll at least need Quarto itself,
 // Papermill and whatever language you are running your analyses on; you can see
 // an example in this module's environment file.
-process QUARTO_PARTIAL {
+//
+// NB 2: You'll need to export the versions of the packages you are using inside
+// your notebook to a `versions.csv` file (formatted as `package,version`),
+// which will be added to the `versions` topic; module versions are handled
+// separately by `eval()` statements.
+process QUARTO_PRERENDER {
     tag "${prefix}"
     label 'process_low'
     conda "${moduleDir}/environment.yml"
@@ -17,10 +22,11 @@ process QUARTO_PARTIAL {
     path input_files
 
     output:
+    tuple val(meta), path("${prefix}{.md,_files}")                                             , emit: rendered
     tuple val(meta), path(notebook)                                                            , emit: notebook
-    tuple val(meta), path("params.yml")                                                        , emit: params_yaml
-    tuple val(meta), path("${prefix}{.md,_files}")                                             , emit: partial
+    tuple val(meta), path("${prefix}-params.yml")                                              , emit: params_yaml
     tuple val(meta), path("${notebook_parameters.artifact_dir}/*")                             , emit: artifacts, optional: true
+    path "versions.yml"                                                                        , emit: versions          , topic: versions
     tuple val("${task.process}"), val('quarto')   , eval('quarto -v')                          , emit: versions_quarto   , topic: versions
     tuple val("${task.process}"), val('papermill'), eval('papermill --version | cut -f1 -d" "'), emit: versions_papermill, topic: versions
 
@@ -29,13 +35,12 @@ process QUARTO_PARTIAL {
 
     script:
     def args = task.ext.args ?: ''
-    // Partial is meant to be run once, not per sample, hence the naming scheme
     prefix = task.ext.prefix ?: "${notebook.baseName}"
     // Implicit parameters can be overwritten by supplying a value with parameters
     notebook_parameters = [
         meta: meta,
         cpus: task.cpus,
-        artifact_dir: "artifacts",
+        artifact_dir: "${prefix}-artifacts",
     ] + (parameters ?: [:])
     // Parse parameters through a YAML file, which is better than CLI because:
     //  - No issue with escaping
@@ -46,7 +51,7 @@ process QUARTO_PARTIAL {
     def yaml_content = yamlBuilder.toString().tokenize('\n').join("\n    ")
     """
     # Dump parameters to yaml file
-    cat <<- END_YAML_PARAMS > params.yml
+    cat <<- END_YAML_PARAMS > ${prefix}-params.yml
     ${yaml_content}
     END_YAML_PARAMS
 
@@ -71,17 +76,34 @@ process QUARTO_PARTIAL {
     export OMP_NUM_THREADS="${task.cpus}"
     export NUMBA_NUM_THREADS="${task.cpus}"
 
-    # Render partial
+    # Render notebook to markdown
     quarto render \\
         ${notebook} \\
         ${args} \\
         --to markdown \\
-        --execute-params params.yml \\
+        --execute-params ${prefix}-params.yml \\
         --output ${prefix}.md
+
+    # Check that notebook package versions is exported
+    if [ ! -f versions.csv ]; then
+        echo "ERROR: versions.csv not found; the .qmd script must write out [tool,version] pairs used within the notebook." >&2
+        exit 1
+    fi
+
+    # Write notebook package versions to YAML
+    cat <<- END_VERSIONS > versions.yml
+    "${task.process}":
+    \$(awk -F',' '{printf "    %s: %s\\n", \$1, \$2}' versions.csv)
+    END_VERSIONS
     """
 
     stub:
     prefix = task.ext.prefix ?: "${notebook.baseName}"
+    notebook_parameters = [
+        meta: meta,
+        cpus: task.cpus,
+        artifact_dir: "artifacts",
+    ] + (parameters ?: [:])
     """
     # Note: The fix is also needed in the stub for `quarto -v` to work.
     ENV_QUARTO=/opt/conda/etc/conda/activate.d/quarto.sh
@@ -92,6 +114,7 @@ process QUARTO_PARTIAL {
     set -u
 
     touch ${prefix}.md
-    touch params.yml
+    touch ${prefix}-params.yml
+    touch versions.yml
     """
 }

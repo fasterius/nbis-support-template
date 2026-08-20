@@ -1,26 +1,26 @@
 ---
-title: "NBIS support #0000 report"
-author: "Erik Fasterius"
-date: today
 format:
-    nbis-html:
-        code-fold: true
-        toc-depth: 3
+    markdown:
+        echo: false
+        warning: false
+        standalone: false
 params:
     meta: null
     cpus: 1
     artifact_dir: "artifacts"
+execute:
+    fig-format: retina
 ---
 
-# Introduction
+# Pre-render
 
-Introductory text.
-
-{{< include prerender.md >}}
+Text from the pre-render
 
 ```{r}
+warning("This is a warning")
+plot(1, 1)
 data(iris)
-write.table(tail(iris), file.path(params$artifact_dir, "iris-tail.txt"))
+write.table(head(iris), file.path(params$artifact_dir, "iris-head.txt"))
 ```
 
 ```{r export-versions}
