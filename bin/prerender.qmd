@@ -5,9 +5,9 @@ format:
         warning: false
         standalone: false
 params:
-    meta: null
-    cpus: 1
     artifact_dir: "artifacts"
+    cpus: 1
+    meta: null
 execute:
     fig-format: retina
 ---
@@ -21,19 +21,4 @@ warning("This is a warning")
 plot(1, 1)
 data(iris)
 write.table(head(iris), file.path(params$artifact_dir, "iris-head.txt"))
-```
-
-```{r export-versions}
-versions <- data.frame(
-    package = "R",
-    version = as.character(getRversion())
-)
-write.table(
-    versions,
-    "versions.csv",
-    sep       = ",",
-    row.names = FALSE,
-    col.names = FALSE,
-    quote     = FALSE
-)
 ```

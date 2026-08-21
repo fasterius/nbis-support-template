@@ -7,9 +7,9 @@ format:
         code-fold: true
         toc-depth: 3
 params:
-    meta: null
-    cpus: 1
     artifact_dir: "artifacts"
+    cpus: 1
+    meta: null
 ---
 
 # Introduction
@@ -21,19 +21,4 @@ Introductory text.
 ```{r}
 data(iris)
 write.table(tail(iris), file.path(params$artifact_dir, "iris-tail.txt"))
-```
-
-```{r export-versions}
-versions <- data.frame(
-    package = "R",
-    version = as.character(getRversion())
-)
-write.table(
-    versions,
-    "versions.csv",
-    sep       = ",",
-    row.names = FALSE,
-    col.names = FALSE,
-    quote     = FALSE
-)
 ```

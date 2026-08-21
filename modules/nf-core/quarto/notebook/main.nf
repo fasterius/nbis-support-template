@@ -28,7 +28,6 @@ process QUARTO_NOTEBOOK {
     tuple val(meta), path("params.yml")                                                        , emit: params_yaml
     tuple val(meta), path("${notebook_parameters.artifact_dir}/*")                             , emit: artifacts  , optional: true
     tuple val(meta), path("_extensions")                                                       , emit: extensions , optional: true
-    path "versions.yml"                                                                        , emit: versions          , topic: versions
     tuple val("${task.process}"), val('quarto'), eval('quarto -v')                             , emit: versions_quarto   , topic: versions
     tuple val("${task.process}"), val('papermill'), eval('papermill --version | cut -f1 -d" "'), emit: versions_papermill, topic: versions
 
@@ -84,18 +83,6 @@ process QUARTO_NOTEBOOK {
         ${args} \\
         --execute-params params.yml \\
         --output ${prefix}.html
-
-    # Check that notebook package versions is exported
-    if [ ! -f versions.csv ]; then
-        echo "ERROR: versions.csv not found; the notebook must write out [tool,version] pairs used within it." >&2
-        exit 1
-    fi
-
-    # Write notebook package versions to YAML
-    cat <<- END_VERSIONS > versions.yml
-    "${task.process}":
-    \$(awk -F',' '{printf "    %s: %s\\n", \$1, \$2}' versions.csv)
-    END_VERSIONS
     """
 
     stub:
